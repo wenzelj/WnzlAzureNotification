@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.810.6
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WnzlAzureNotification", "WnzlAzureNotification\WnzlAzureNotification.csproj", "{EC8AB3B0-098B-44C4-87AA-1436B16DE0ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC8AB3B0-098B-44C4-87AA-1436B16DE0ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC8AB3B0-098B-44C4-87AA-1436B16DE0ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC8AB3B0-098B-44C4-87AA-1436B16DE0ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC8AB3B0-098B-44C4-87AA-1436B16DE0ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0E8442F8-0442-4672-9E58-43369449E3DF}
+	EndGlobalSection
+EndGlobal
