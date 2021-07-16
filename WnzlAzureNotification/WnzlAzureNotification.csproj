@@ -5,4 +5,18 @@
   </PropertyGroup>
 
 
+  <ItemGroup>
+    <None Remove="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+    <None Remove="Microsoft.Azure.NotificationHubs" />
+    <None Remove="Models\" />
+    <None Remove="NotificationHubConfiguration\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Azure.NotificationHubs" Version="4.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Configuration\" />
+  </ItemGroup>
 </Project>
