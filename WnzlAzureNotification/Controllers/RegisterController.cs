@@ -77,10 +77,16 @@ namespace WnzlAzureNotification.Controllers
         {
             var registrations = getRegistrationsByTag(registrationRequest.clientId);
 
+            // multiple devices means we need multiple registrations of tokens containing a client identification tag
+
             // need to get all client registrations by tag
             // loop the registrations and check if token already exist for device.
             // Add token if different device and token not exist 
-            
+            // To make this simpler we should use a clientId and deviceId as a tag
+            // That would reduce the risk of having multiple tokens that expired for the same device
+
+            // add some auto housekeeping to delete devices that has been inactive for some time 
+
             string registrationId = getRegistrationIdByTag(registrationRequest.clientId);
             if (string.IsNullOrEmpty(registrationId)) {
                 // No registration for tag. Get a new one
