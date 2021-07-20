@@ -13,6 +13,7 @@ using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using WnzlAzureNotification.Configuration;
+using WnzlAzureNotification.Models;
 
 namespace WnzlAzureNotification.Controllers
 {
@@ -48,61 +49,52 @@ namespace WnzlAzureNotification.Controllers
             return "working";
         }
 
+
+        //// Custom API on the backend
         //[HttpPut]
-        //public string Put(string clientId, string token)
+        //public async Task<HttpResponseMessage> Put(string clientId, string token)
         //{
-        //    return clientId;
+
+        //    //this is notification hub client  
+        //    var registrationId = await hub.CreateRegistrationIdAsync();
+           
+        //    var registration = new GcmRegistrationDescription(token)
+        //    {
+        //        //one we got in previous call.
+        //        RegistrationId = registrationId,
+        //        Tags = new HashSet<string> {
+        //        clientId }
+        //    };
+
+
+        //    await hub.CreateOrUpdateRegistrationAsync(registration);
+
+        //    return new HttpResponseMessage(HttpStatusCode.OK);
         //}
 
-
-
-        // Custom API on the backend
         [HttpPut]
-        public async Task<HttpResponseMessage> Put(string clientId, string token)
+        public async Task<HttpResponseMessage> Put(RegistrationRequest registrationRequest)
         {
+            var registrations = getRegistrationsByTag(registrationRequest.clientId);
 
-            //this is notification hub client  
-            var registrationId = await hub.CreateRegistrationIdAsync();
+            // need to get all client registrations by tag
+            // loop the registrations and check if token already exist for device.
+            // Add token if different device and token not exist 
+            
+            string registrationId = getRegistrationIdByTag(registrationRequest.clientId);
+            if (string.IsNullOrEmpty(registrationId)) {
+                // No registration for tag. Get a new one
+                registrationId = await hub.CreateRegistrationIdAsync();
+            }
 
-            //Installation installation = new Installation();
-            //installation.InstallationId = deviceUpdate.InstallationId;
-            //installation.PushChannel = deviceUpdate.Handle;
-            //installation.Tags = deviceUpdate.Tags;
-
-            //switch (platform)
-            //{
-            //    case NotificationPlatform.Mpns:
-            //        //installation.Platform = NotificationPlatform.Mpns;
-
-            //        break;
-            //    case NotificationPlatform.Wns:
-            //        //installation.Platform = NotificationPlatform.Wns;
-            //        break;
-            //    case NotificationPlatform.Apns:
-            //        //installation.Platform = NotificationPlatform.Apns;
-            //        break;
-            //    case NotificationPlatform.Fcm:
-            //        registration = new GcmRegistrationDescription(token);
-            //        //installation.Platform = NotificationPlatform.Fcm;
-            //        break;
-            //    default:
-            //        break;
-            //        //throw new HttpResponseException(HttpStatusCode.BadRequest);
-            //}
-
-            var registration = new GcmRegistrationDescription(token)
+            //TODO we have to handle different types of registrations Android and IOS 
+            var registration = new FcmRegistrationDescription(registrationRequest.token)
             {
                 //one we got in previous call.
                 RegistrationId = registrationId,
                 Tags = new HashSet<string> {
-                clientId }
+                registrationRequest.clientId }
             };
-
-
-
-            // In the backend we can control if a user is allowed to add tags
-            //installation.Tags = new List<string>(deviceUpdate.Tags);
-            //installation.Tags.Add("username:" + username);
 
             await hub.CreateOrUpdateRegistrationAsync(registration);
 
@@ -110,83 +102,65 @@ namespace WnzlAzureNotification.Controllers
         }
 
 
-        //// Custom API on the backend
-        //public async Task<HttpResponseMessage> Put(DeviceInstallation deviceUpdate)
+        //// POST api/register
+        //// This creates a registration id
+        //[HttpPost]
+        //public async Task<string> Post(string handle = null)
         //{
+        //    string newRegistrationId = null;
 
-        //    Installation installation = new Installation();
-        //    installation.InstallationId = deviceUpdate.InstallationId;
-        //    installation.PushChannel = deviceUpdate.Handle;
-        //    installation.Tags = deviceUpdate.Tags;
-
-        //    switch (deviceUpdate.Platform)
+        //    // make sure there are no existing registrations for this push handle (used for iOS and Android)
+        //    if (handle != null)
         //    {
-        //        case "mpns":
-        //            installation.Platform = NotificationPlatform.Mpns;
-        //            break;
-        //        case "wns":
-        //            installation.Platform = NotificationPlatform.Wns;
-        //            break;
-        //        case "apns":
-        //            installation.Platform = NotificationPlatform.Apns;
-        //            break;
-        //        case "fcm":
-        //            installation.Platform = NotificationPlatform.Fcm;
-        //            break;
-        //        default:
-        //            throw new HttpResponseException(HttpStatusCode.BadRequest);
+        //        var registrations = await hub.GetRegistrationsByChannelAsync(handle, 100);
+
+        //        foreach (RegistrationDescription registration in registrations)
+        //        {
+        //            if (newRegistrationId == null)
+        //            {
+        //                newRegistrationId = registration.RegistrationId;
+        //            }
+        //            else
+        //            {
+        //                await hub.DeleteRegistrationAsync(registration);
+        //            }
+        //        }
         //    }
 
+        //    if (newRegistrationId == null)
+        //        newRegistrationId = await hub.CreateRegistrationIdAsync();
 
-        //    // In the backend we can control if a user is allowed to add tags
-        //    //installation.Tags = new List<string>(deviceUpdate.Tags);
-        //    //installation.Tags.Add("username:" + username);
-
-        //    await hub.CreateOrUpdateInstallationAsync(installation);
-
-        //    return Request.CreateResponse(HttpStatusCode.OK);
+        //    return newRegistrationId;
         //}
 
-
-        // POST api/register
-        // This creates a registration id
-        [HttpPost]
-        public async Task<string> Post(string handle = null)
-        {
-            string newRegistrationId = null;
-
-            // make sure there are no existing registrations for this push handle (used for iOS and Android)
-            if (handle != null)
+        private string getRegistrationIdByTag(string tag) {
+            var registrants = hub.GetRegistrationsByTagAsync(tag, 1);
+            var client = registrants.Result.FirstOrDefault();
+            if (client != null)
             {
-                var registrations = await hub.GetRegistrationsByChannelAsync(handle, 100);
-
-                foreach (RegistrationDescription registration in registrations)
-                {
-                    if (newRegistrationId == null)
-                    {
-                        newRegistrationId = registration.RegistrationId;
-                    }
-                    else
-                    {
-                        await hub.DeleteRegistrationAsync(registration);
-                    }
-                }
+                return client.RegistrationId;
             }
 
-            if (newRegistrationId == null)
-                newRegistrationId = await hub.CreateRegistrationIdAsync();
-
-            return newRegistrationId;
+            return null;
         }
 
+        private List<RegistrationDescription> getRegistrationsByTag(string tag) {
+            var registrations = hub.GetRegistrationsByTagAsync(tag, 1);
+            return registrations.Result.ToList();
+        }
 
-       
 
         // DELETE api/register/5
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete(string clientId)
         {
-            await hub.DeleteRegistrationAsync(clientId);
+            //var registrants = await hub.GetRegistrationsByTagAsync(clientId, 1);
+            //var client = registrants.FirstOrDefault();
+            string id = getRegistrationIdByTag(clientId);
+            if (!string.IsNullOrEmpty(id)) {
+                await hub.DeleteRegistrationAsync(id);
+            }
+            
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
@@ -200,8 +174,5 @@ namespace WnzlAzureNotification.Controllers
                     throw new HttpRequestException(HttpStatusCode.Gone.ToString());
             }
         }
-
-
-
     }
 }
